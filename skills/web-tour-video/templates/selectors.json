@@ -1,0 +1,10 @@
+{
+  "steps": [
+    {
+      "step": 1,
+      "selector": "[data-testid=\"new-task\"]",
+      "confidence": "high",
+      "note": "按钮在任务面板右上角"
+    }
+  ]
+}

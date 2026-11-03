@@ -1,0 +1,26 @@
+{
+  "url": "https://app.example.com",
+  "storageState": "auth.json",
+  "video": { "width": 1920, "height": 1080 },
+  "tts": { "model": "", "voice": "" },
+  "lexicon": [
+    { "match": "重要", "tts": "ZHONG4要" }
+  ],
+  "steps": [
+    {
+      "narration": "打开工作台，先看一眼今天的任务。",
+      "actions": [
+        { "type": "goto", "url": "https://app.example.com" },
+        { "type": "wait", "ms": 900 }
+      ]
+    },
+    {
+      "narration": "点击右上角的新建任务。",
+      "actions": [
+        { "type": "wait", "ms": 500 },
+        { "type": "click", "selector": "[data-testid=\"new-task\"]" },
+        { "type": "wait", "ms": 600 }
+      ]
+    }
+  ]
+}
