@@ -27,7 +27,8 @@ import {
 const args = parseArgs();
 const command = args._[0] || 'help';
 const force = Boolean(args.flags.force);
-const runDir = resolveRunDir(args.flags.run || args._[1] || 'runs/sample');
+const runArg = args.flags.run || args._[1];
+const runDir = runArg ? resolveRunDir(runArg) : null;
 const skillsDir = path.resolve(import.meta.dirname, '../..');
 
 const scripts = {
@@ -41,6 +42,7 @@ const scripts = {
 };
 
 function updateState(phase, status = 'ok') {
+  if (!runDir) return;
   const file = path.join(runDir, 'work', 'state.json');
   let prev = {};
   if (fs.existsSync(file)) {
@@ -49,8 +51,16 @@ function updateState(phase, status = 'ok') {
   writeJson(file, { ...prev, phase, status, updatedAt: new Date().toISOString() });
 }
 
-function run(script, extra = [], phase = path.basename(script, '.mjs')) {
-  const r = spawnSync(process.execPath, [script, '--run', runDir, ...extra], {
+function requireRun() {
+  if (!runDir) {
+    console.error('缺少 --run：例如 --run runs/2026-01-01-app-demo');
+    process.exit(1);
+  }
+}
+
+function run(script, extra = [], phase = path.basename(script, '.mjs'), withRun = true) {
+  const runArgs = withRun ? ['--run', runDir] : [];
+  const r = spawnSync(process.execPath, [script, ...runArgs, ...extra], {
     cwd: PROJECT_ROOT,
     stdio: 'inherit',
     env: process.env,
@@ -197,37 +207,45 @@ function help() {
 
 选项：
   --force   跳过旁白确认（仅用于回归测试）
-  --run     指定 run 目录，默认 runs/sample
+  --run     指定 run 目录（除 doctor 外必填）
 `);
 }
 
 switch (command) {
   case 'doctor':
-    run(scripts.doctor, [], 'doctor');
+    run(scripts.doctor, [], 'doctor', false);
     break;
   case 'recon':
+    requireRun();
     run(scripts.recon, [], 'recon');
     break;
   case 'validate':
+    requireRun();
     run(scripts.validate, [], 'storyboard');
     break;
   case 'approve':
+    requireRun();
     approve();
     break;
   case 'audio':
+    requireRun();
     requireApproval();
     run(scripts.audio, [], 'audio');
     break;
   case 'record':
+    requireRun();
     run(scripts.record, [], 'record');
     break;
   case 'render':
+    requireRun();
     run(scripts.render, [], 'render');
     break;
   case 'qa':
+    requireRun();
     run(scripts.qa, [], 'qa');
     break;
   case 'all':
+    requireRun();
     run(scripts.validate, [], 'storyboard');
     requireApproval();
     run(scripts.audio, [], 'audio');
@@ -236,6 +254,7 @@ switch (command) {
     run(scripts.qa, [], 'qa');
     break;
   case 'status':
+    requireRun();
     status();
     break;
   case 'help':
